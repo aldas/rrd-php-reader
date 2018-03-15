@@ -96,4 +96,9 @@ class Rra
     {
         return $this->rrdData->getDoubleAt($this->base_rrd_db_idx + $this->calc_idx($row_idx, $ds_idx));
     }
+
+    public function __destruct()
+    {
+        $this->rrdData = null;
+    }
 }

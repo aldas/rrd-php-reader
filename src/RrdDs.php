@@ -51,4 +51,9 @@ class RrdDs
     {
         return $this->rrdData->getDoubleAt($this->dataIndex + 56);
     }
+
+    public function __destruct()
+    {
+        $this->rrdData = null;
+    }
 }

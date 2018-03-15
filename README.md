@@ -5,3 +5,11 @@
 **Only meant to export data out of rrd file. Not support for consolidation function etc**
 
 Original repository: http://javascriptrrd.sourceforge.net/
+
+## Example
+
+```
+$reader = RrdReader::createFromPath('path/to/my_rrd.rrd');
+
+$data = $reader->setDs('value')->setRraIndex(0)->getAsArray();
+```

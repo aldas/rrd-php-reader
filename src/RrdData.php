@@ -117,4 +117,9 @@ class RrdData
         return $unpack[1];
     }
 
+    public function __destruct()
+    {
+        $this->data = null;
+    }
+
 }

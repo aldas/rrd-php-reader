@@ -422,4 +422,9 @@ class RrdHeader
         throw new RrdRangeException("RRA idx ({$idx}) out of range [0-{$this->rra_cnt}).");
     }
 
+    public function __destruct()
+    {
+        $this->rrdData = null;
+    }
+
 }

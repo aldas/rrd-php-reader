@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace RrdPhpReader;
 
 
+use RrdPhpReader\Exception\RrdException;
 use RrdPhpReader\Rra\Rra;
 
 class RrdReader
@@ -31,6 +32,14 @@ class RrdReader
     public function getRrd(): RrdFile
     {
         return $this->rrdFile;
+    }
+
+    public static function createFromPath(string $path)
+    {
+        if (!is_file($path)) {
+            throw new RrdException('Path does not exist or is not a file');
+        }
+        return new static(new RrdFile(new RrdData(file_get_contents($path))));
     }
 
     public static function createFromString(string $contents)

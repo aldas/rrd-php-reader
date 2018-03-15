@@ -75,4 +75,10 @@ class RrdFile
             $this->header->getNrDSs()
         );
     }
+
+    public function __destruct()
+    {
+        $this->header = null;
+        $this->rrdData = null;
+    }
 }

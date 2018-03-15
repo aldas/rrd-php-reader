@@ -77,4 +77,9 @@ class RraInfo
         return $this->rrd_data->getCStringAt($this->rra_def_idx, 20);
     }
 
+    public function __destruct()
+    {
+        $this->rrd_data = null;
+    }
+
 }
