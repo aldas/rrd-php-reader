@@ -20,7 +20,6 @@ class Rra
     private $rraInfo;
 
     private $rra_ptr_idx;
-    private $rra_info;
     private $header_size;
     private $prev_row_cnts;
     private $ds_cnt;
@@ -35,7 +34,7 @@ class Rra
 
         $this->rrdData = $rrdData;
         $this->rra_ptr_idx = $rra_ptr_idx;
-        $this->rra_info = $rra_info;
+        $this->rraInfo = $rra_info;
         $this->header_size = $header_size;
         $this->prev_row_cnts = $prev_row_cnts;
         $this->ds_cnt = $ds_cnt;
@@ -73,12 +72,12 @@ class Rra
         return $this->rraInfo->getIdx();
     }
 
-    public function getNrRows(): int
+    public function getRowCount(): int
     {
         return $this->row_cnt;
     }
 
-    public function getNrDSs(): int
+    public function getDsCount(): int
     {
         return $this->ds_cnt;
     }
@@ -93,7 +92,7 @@ class Rra
         return $this->rraInfo->getCFName();
     }
 
-    public function getEl($row_idx, $ds_idx): float
+    public function getRow($row_idx, $ds_idx): float
     {
         return $this->rrdData->getDoubleAt($this->base_rrd_db_idx + $this->calc_idx($row_idx, $ds_idx));
     }

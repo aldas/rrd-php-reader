@@ -20,33 +20,32 @@ class RrdFile
 
     public function __construct(RrdData $rrdData)
     {
-        // load file contents?
-        // create header;
         $this->rrdData = $rrdData;
         $this->header = new RrdHeader($rrdData);
     }
+
 
     public function getHeader(): RrdHeader
     {
         return $this->header;
     }
 
-    public function getMinStep()
+    public function getMinStep(): int
     {
         return $this->header->getMinStep();
     }
 
-    public function getLastUpdate()
+    public function getLastUpdate(): int
     {
         return $this->header->getLastUpdate();
     }
 
-    public function getNrDSs()
+    public function getNrDSs(): int
     {
         return $this->header->getNrDSs();
     }
 
-    public function getDS($ds)
+    public function getDS($ds): RrdDs
     {
         if (\is_string($ds)) {
             return $this->header->getDSbyName($ds);
@@ -54,7 +53,7 @@ class RrdFile
         return $this->header->getDSbyIdx($ds);
     }
 
-    public function getNrRRAs()
+    public function getNrRRAs(): int
     {
         return $this->header->getNrRRAs();
     }
@@ -69,7 +68,7 @@ class RrdFile
         $rra_info = $this->header->getRRAInfo($idx);
         return new Rra(
             $this->rrdData,
-            $this->header->rra_ptr_idx + $idx * $this->header->rra_ptr_el_size,
+            $this->header->rra_ptr_idx + ($idx * $this->header->rra_ptr_el_size),
             $rra_info,
             $this->header->header_size,
             $this->header->rra_def_row_cnt_sums[$idx],

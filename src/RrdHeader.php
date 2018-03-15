@@ -8,9 +8,11 @@ use RrdPhpReader\Exception\InvalidRrdException;
 use RrdPhpReader\Exception\RrdRangeException;
 use RrdPhpReader\Rra\RraInfo;
 
-//FIXME fix public variables
+//FIXME fix public variables, clean unnecessary variables
 class RrdHeader
 {
+    // see https://github.com/oetiker/rrdtool-1.x/blob/f1770608cdf15283dc44eada2a8a12a21825ee71/src/rrd_format.h#L39
+    const FLOAT_COOKIE = 8.642135e+130;
     /**
      * @var RrdData
      */
@@ -206,11 +208,11 @@ class RrdHeader
         if ($this->rrdData->getLongAt(12) === 0) {
             // not a double here... likely 64 bit
             $this->float_align = 8;
-            if (!($this->rrdData->getDoubleAt(16) === 8.642135e+130)) { // TODO check what in PHP it would be
+            if (!($this->rrdData->getDoubleAt(16) === static::FLOAT_COOKIE)) {
                 // uhm... wrong endian?
                 $this->rrdData->setSwitchEndian(true);
             }
-            if ($this->rrdData->getDoubleAt(16) === 8.642135e+130) {// TODO check what in PHP it would be
+            if ($this->rrdData->getDoubleAt(16) === static::FLOAT_COOKIE) {// TODO check what in PHP it would be
                 // now, is it all 64bit or only float 64 bit?
                 if ($this->rrdData->getLongAt(28) === 0) {
                     // true 64 bit align
@@ -226,11 +228,11 @@ class RrdHeader
             }
         } else {
             /// should be 32 bit alignment
-            if (!($this->rrdData->getDoubleAt(12) === 8.642135e+130)) {// TODO check what in PHP it would be
+            if (!($this->rrdData->getDoubleAt(12) === static::FLOAT_COOKIE)) {// TODO check what in PHP it would be
                 // uhm... wrong endian?
                 $this->rrdData->setSwitchEndian(true);
             }
-            if ($this->rrdData->getDoubleAt(12) === 8.642135e+130) {// TODO check what in PHP it would be
+            if ($this->rrdData->getDoubleAt(12) === static::FLOAT_COOKIE) {// TODO check what in PHP it would be
                 $this->float_align = 4;
                 $this->int_align = 4;
                 $this->int_width = 4;
@@ -241,6 +243,7 @@ class RrdHeader
         $this->unival_width = $this->float_width;
         $this->unival_align = $this->float_align;
 
+        // Header structure: https://github.com/oetiker/rrdtool-1.x/blob/f1770608cdf15283dc44eada2a8a12a21825ee71/src/rrd_format.h#L114
         // process the header here, since I need it for validation
 
         // char magic[4], char version[5], double magic_float
@@ -257,7 +260,7 @@ class RrdHeader
         }
 
         $this->rra_cnt = $this->rrdData->getLongAt($this->rra_cnt_idx);
-        if ($this->ds_cnt < 1) {
+        if ($this->rra_cnt < 1) {
             throw new InvalidRrdException('rra count less than 1.');
         }
 
@@ -286,8 +289,18 @@ class RrdHeader
         $this->rra_def_el_size = (int)(ceil(($this->row_cnt_idx + 2 * $this->int_width) / $this->unival_align) * $this->unival_align + 10 * $this->unival_width);
 
         $this->live_head_idx = $this->rra_def_idx + $this->rra_def_el_size * $this->rra_cnt;
-        // time_t last_up, int last_up_usec
-        $this->live_head_size = 2 * $this->int_width;
+
+        /**
+         * https://github.com/oetiker/rrdtool-1.x/blob/f1770608cdf15283dc44eada2a8a12a21825ee71/src/rrd_format.h#L289
+         * 
+         * typedef struct live_head_t {
+         *  time_t    last_up;  // when was rrd last updated
+         *  long      last_up_usec; // micro seconds part of the update timestamp. Always >= 0
+         * } live_head_t;
+         *
+         * was originally (2 * $this->int_width) but it seems that even on rrd files generated on Windows it is 16bytes
+         */
+        $this->live_head_size = 2 * $this->float_width;
 
         $this->pdp_prep_idx = $this->live_head_idx + $this->live_head_size;
         // char last_ds[30], unival scratch[10]

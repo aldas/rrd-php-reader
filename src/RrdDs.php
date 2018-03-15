@@ -13,42 +13,42 @@ class RrdDs
     /**
      * @var int
      */
-    private $idx;
+    private $dataIndex;
 
     /**
      * @var int
      */
-    private $myIdx;
+    private $dsIndex;
 
-    public function __construct(RrdData $rrdData, int $idx, int $myIdx)
+    public function __construct(RrdData $rrdData, int $dataIndex, int $dsIndex)
     {
         $this->rrdData = $rrdData;
-        $this->idx = $idx;
-        $this->myIdx = $myIdx;
+        $this->dataIndex = $dataIndex;
+        $this->dsIndex = $dsIndex;
     }
 
-    public function getIdx(): int
+    public function getIndex(): int
     {
-        return $this->myIdx;
+        return $this->dsIndex;
     }
 
     public function getName(): string
     {
-        return $this->rrdData->getCStringAt($this->idx, 20);
+        return $this->rrdData->getCStringAt($this->dataIndex, 20);
     }
 
     public function getType(): string
     {
-        return $this->rrdData->getCStringAt($this->idx + 20, 20);
+        return $this->rrdData->getCStringAt($this->dataIndex + 20, 20);
     }
 
     public function getMin(): float
     {
-        return $this->rrdData->getDoubleAt($this->idx + 48);
+        return $this->rrdData->getDoubleAt($this->dataIndex + 48);
     }
 
     public function getMax(): float
     {
-        return $this->rrdData->getDoubleAt($this->idx + 56);
+        return $this->rrdData->getDoubleAt($this->dataIndex + 56);
     }
 }

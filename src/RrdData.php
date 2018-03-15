@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace RrdPhpReader;
 
 
+use RrdPhpReader\Exception\RrdRangeException;
+
 class RrdData
 {
     /**
@@ -25,6 +27,11 @@ class RrdData
     {
         $this->data = $data;
         $this->length = \strlen($data);
+    }
+
+    public function getRawData()
+    {
+        return $this->data;
     }
 
     public function getLength(): int
@@ -56,16 +63,6 @@ class RrdData
         return (int)$this->data[$idx];
     }
 
-    private function getEndianByteAt(int $iOffset, int $width, int $delta = 0)
-    {
-        if ($this->switch_endian) {
-            $index = $iOffset + $width - $delta - 1;
-        } else {
-            $index = $iOffset + $width;
-        }
-        return $this->getByteAt($index);
-    }
-
     /**
      * Return a 32 bit unsigned integer at offset idx
      *
@@ -74,6 +71,9 @@ class RrdData
      */
     public function getLongAt(int $idx): int
     {
+        if ($idx > $this->length - 4) {
+            throw new RrdRangeException("getLongAt index {$idx} out of range ({$this->length})");
+        }
         $raw = substr($this->data, $idx, 4);
         $format = 'V'; // unsigned long (always 32 bit, little endian byte order)
         if ($this->switch_endian) {
@@ -91,6 +91,9 @@ class RrdData
      */
     public function getDoubleAt(int $idx): float
     {
+        if ($idx > $this->length - 8) {
+            throw new RrdRangeException("getDoubleAt index {$idx} out of range ({$this->length})");
+        }
         $raw = substr($this->data, $idx, 8);
         $format = 'e'; // double (machine dependent size, little endian byte order)
         if ($this->switch_endian) {

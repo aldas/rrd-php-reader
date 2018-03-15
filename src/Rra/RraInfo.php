@@ -29,7 +29,7 @@ class RraInfo
         $this->pdp_step = $pdp_step;
         $this->my_idx = $my_idx;
 
-        $this->rra_pdp_cnt_idx = $rra_def_idx + ceil(20 / $int_align) * $int_align + $int_align;
+        $this->rra_pdp_cnt_idx = $rra_def_idx + (int)(ceil(20 / $int_align) * $int_align + $int_align);
     }
 
     public function getIdx(): int
