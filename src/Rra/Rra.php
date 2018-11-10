@@ -9,61 +9,48 @@ use RrdPhpReader\RrdData;
 
 class Rra
 {
-    /**
-     * @var RrdData
-     */
+    /** @var RrdData */
     private $rrdData;
 
-    /**
-     * @var RraInfo
-     */
+    /** @var RraInfo */
     private $rraInfo;
 
-    private $rra_ptr_idx;
-    private $header_size;
-    private $prev_row_cnts;
-    private $ds_cnt;
-    private $base_rrd_db_idx;
+    private $dataSourceCount;
+    private $baseOffsetIndex;
     private $cur_row;
-    private $row_cnt;
+    private $rowCount;
     private $row_size;
 
 
-    public function __construct(RrdData $rrdData, $rra_ptr_idx, RraInfo $rra_info, $header_size, $prev_row_cnts, $ds_cnt)
+    public function __construct(RrdData $rrdData, $rra_ptr_idx, RraInfo $rra_info, $dataSourceCount, int $rraBaseOffsetIndex)
     {
-
         $this->rrdData = $rrdData;
-        $this->rra_ptr_idx = $rra_ptr_idx;
         $this->rraInfo = $rra_info;
-        $this->header_size = $header_size;
-        $this->prev_row_cnts = $prev_row_cnts;
-        $this->ds_cnt = $ds_cnt;
+        $this->dataSourceCount = $dataSourceCount;
+        $this->row_size = $dataSourceCount * 8;
+        $this->rowCount = $rra_info->getRowCount();
 
 
-        $this->row_cnt = $rra_info->getNrRows();
-
-        $this->row_size = $ds_cnt * 8;
-
-        $this->base_rrd_db_idx = $header_size + $prev_row_cnts * $this->row_size;
+        $this->baseOffsetIndex = $rraBaseOffsetIndex;
 
         // get imediately, since it will be needed often
         $this->cur_row = $rrdData->getLongAt($rra_ptr_idx);
     }
 
-    private function calc_idx(int $row_idx, int $ds_idx)
+    private function calculateIndex(int $row_idx, int $ds_idx)
     {
-        if (($row_idx >= 0) && ($row_idx < $this->row_cnt)) {
-            if (($ds_idx >= 0) && ($ds_idx < $this->ds_cnt)) {
+        if (($row_idx >= 0) && ($row_idx < $this->rowCount)) {
+            if (($ds_idx >= 0) && ($ds_idx < $this->dataSourceCount)) {
                 // it is round robin, starting from cur_row+1
                 $real_row_idx = $row_idx + $this->cur_row + 1;
-                if ($real_row_idx >= $this->row_cnt) {
-                    $real_row_idx -= $this->row_cnt;
+                if ($real_row_idx >= $this->rowCount) {
+                    $real_row_idx -= $this->rowCount;
                 }
                 return $this->row_size * $real_row_idx + $ds_idx * 8;
             }
-            throw new RrdRangeException("DS idx ({$row_idx}) out of range [0-{$this->ds_cnt}).");
+            throw new RrdRangeException("DS idx ({$row_idx}) out of range [0-{$this->dataSourceCount}).");
         }
-        throw new RrdRangeException("Row idx ({$row_idx}) out of range [0-{$this->row_cnt}).");
+        throw new RrdRangeException("Row idx ({$row_idx}) out of range [0-{$this->rowCount}).");
     }
 
 
@@ -74,12 +61,12 @@ class Rra
 
     public function getRowCount(): int
     {
-        return $this->row_cnt;
+        return $this->rraInfo->getRowCount();
     }
 
     public function getDsCount(): int
     {
-        return $this->ds_cnt;
+        return $this->dataSourceCount;
     }
 
     public function getStep(): int
@@ -94,11 +81,21 @@ class Rra
 
     public function getRow($row_idx, $ds_idx): float
     {
-        return $this->rrdData->getDoubleAt($this->base_rrd_db_idx + $this->calc_idx($row_idx, $ds_idx));
+        return $this->rrdData->getDoubleAt($this->baseOffsetIndex + $this->calculateIndex($row_idx, $ds_idx));
     }
 
     public function __destruct()
     {
         $this->rrdData = null;
+    }
+
+    public function __toString()
+    {
+        return $this->rraInfo->__toString();
+    }
+
+    public function getRraInfo(): RraInfo
+    {
+        return $this->rraInfo;
     }
 }

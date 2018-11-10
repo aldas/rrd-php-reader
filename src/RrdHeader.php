@@ -292,7 +292,7 @@ class RrdHeader
 
         /**
          * https://github.com/oetiker/rrdtool-1.x/blob/f1770608cdf15283dc44eada2a8a12a21825ee71/src/rrd_format.h#L289
-         * 
+         *
          * typedef struct live_head_t {
          *  time_t    last_up;  // when was rrd last updated
          *  long      last_up_usec; // micro seconds part of the update timestamp. Always >= 0
@@ -333,7 +333,11 @@ class RrdHeader
         }
     }
 
-    public function getMinStep(): int
+    /**
+     * Get base step value for RRD. Specifies the base interval in seconds with which data will be fed into the RRD
+     * @return int
+     */
+    public function getStep(): int
     {
         return $this->pdp_step;
     }
@@ -343,7 +347,7 @@ class RrdHeader
         return $this->rrdData->getLongAt($this->live_head_idx);
     }
 
-    public function getNrDSs(): int
+    public function getDsCount(): int
     {
         return $this->ds_cnt;
     }
@@ -370,7 +374,7 @@ class RrdHeader
     public function getDSbyIdx(int $idx): RrdDs
     {
         if (($idx >= 0) && ($idx < $this->ds_cnt)) {
-            return new RrdDs(
+            return RrdDs::fromData(
                 $this->rrdData,
                 $this->ds_def_idx + $this->ds_el_size * $idx,
                 $idx
@@ -396,7 +400,7 @@ class RrdHeader
         throw new RrdRangeException("DS name {$name} unknown.");
     }
 
-    public function getNrRRAs(): int
+    public function getRraCount(): int
     {
         return $this->rra_cnt;
     }
@@ -409,14 +413,16 @@ class RrdHeader
     public function getRRAInfo(int $idx): RraInfo
     {
         if (($idx >= 0) && ($idx < $this->rra_cnt)) {
+
             $rra_def_idx = $this->rra_def_idx + $idx * $this->rra_def_el_size;
+            $cfName = $this->rrdData->getCStringAt($rra_def_idx, 20);
+            $rra_pdp_cnt_idx = $rra_def_idx + (int)(ceil(20 / $this->int_align) * $this->int_align + $this->int_align);
+            $pdpPerRow = $this->rrdData->getLongAt($rra_pdp_cnt_idx);
             return new RraInfo(
-                $this->rrdData,
-                $rra_def_idx,
-                $this->int_align,
+                $cfName,
                 $this->rra_def_row_cnts[$idx],
                 $this->pdp_step,
-                $idx
+                $pdpPerRow
             );
         }
         throw new RrdRangeException("RRA idx ({$idx}) out of range [0-{$this->rra_cnt}).");
@@ -425,6 +431,11 @@ class RrdHeader
     public function __destruct()
     {
         $this->rrdData = null;
+    }
+
+    public function getRraBaseOffsetIndex(int $rraIdx): int
+    {
+        return $this->header_size + $this->rra_def_row_cnt_sums[$rraIdx] * ($this->ds_cnt * 8);
     }
 
 }

@@ -13,7 +13,7 @@ class RrdFileTest extends TestCase
         $rrdFile = new RrdFile(new RrdData(FileUtils::getContents($filename)));
 
         $this->assertEquals(1521054894, $rrdFile->getLastUpdate()); // initial value from 1521054885 + (10-1)
-        $this->assertEquals(2, $rrdFile->getNrDSs());
+        $this->assertEquals(2, $rrdFile->getDsCount());
         $this->assertEquals(
             ['value', 'extra_value'],
             $rrdFile->getHeader()->getDSNames()
@@ -61,7 +61,7 @@ class RrdFileTest extends TestCase
     private function getRraData(RrdFile $rrdFile, int $dsIndex): array
     {
         $rras = [];
-        for ($i = 0; $i < $rrdFile->getNrRRAs(); $i++) {
+        for ($i = 0; $i < $rrdFile->getRraCount(); $i++) {
             $rra = $rrdFile->getRRA($i);
 
             $data = [];

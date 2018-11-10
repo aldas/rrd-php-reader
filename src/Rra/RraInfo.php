@@ -3,38 +3,21 @@ declare(strict_types=1);
 
 namespace RrdPhpReader\Rra;
 
-
-use RrdPhpReader\RrdData;
-
 class RraInfo
 {
-    /**
-     * @var RrdData
-     */
-    private $rrd_data;
+    private $rowCount;
+    private $pdpStep;
+    private $pdpPerRow;
 
-    private $rra_def_idx;
-    private $int_align;
-    private $row_cnt;
-    private $pdp_step;
-    private $my_idx;
-    private $rra_pdp_cnt_idx;
+    /**  @var string */
+    private $cfName;
 
-    public function __construct(RrdData $rrd_data, $rra_def_idx, $int_align, $row_cnt, $pdp_step, $my_idx)
+    public function __construct(string $cfName, $rowCount, $pdpStep, $pdpPerRow)
     {
-        $this->rrd_data = $rrd_data;
-        $this->rra_def_idx = $rra_def_idx;
-        $this->int_align = $int_align;
-        $this->row_cnt = $row_cnt;
-        $this->pdp_step = $pdp_step;
-        $this->my_idx = $my_idx;
-
-        $this->rra_pdp_cnt_idx = $rra_def_idx + (int)(ceil(20 / $int_align) * $int_align + $int_align);
-    }
-
-    public function getIdx(): int
-    {
-        return $this->my_idx;
+        $this->rowCount = $rowCount;
+        $this->pdpStep = $pdpStep;
+        $this->pdpPerRow = $pdpPerRow;
+        $this->cfName = $cfName;
     }
 
     /**
@@ -42,9 +25,9 @@ class RraInfo
      *
      * @return int
      */
-    public function getNrRows(): int
+    public function getRowCount(): int
     {
-        return $this->row_cnt;
+        return $this->rowCount;
     }
 
     /**
@@ -54,7 +37,7 @@ class RraInfo
      */
     public function getPdpPerRow(): int
     {
-        return $this->rrd_data->getLongAt($this->rra_pdp_cnt_idx);
+        return $this->pdpPerRow;
     }
 
     /**
@@ -64,7 +47,7 @@ class RraInfo
      */
     public function getStep(): int
     {
-        return $this->pdp_step * $this->getPdpPerRow();
+        return $this->pdpStep * $this->getPdpPerRow();
     }
 
     /**
@@ -74,12 +57,18 @@ class RraInfo
      */
     public function getCFName(): string
     {
-        return $this->rrd_data->getCStringAt($this->rra_def_idx, 20);
+        return $this->cfName;
     }
 
-    public function __destruct()
+    public function __toString()
     {
-        $this->rrd_data = null;
+        return sprintf(
+            'cf=%s, step=%d, pdpPerRow=%d, rowCount=%d',
+            $this->getCFName(),
+            $this->getStep(),
+            $this->getPdpPerRow(),
+            $this->getRowCount()
+        );
     }
 
 }
