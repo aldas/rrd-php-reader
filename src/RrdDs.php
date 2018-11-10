@@ -5,26 +5,51 @@ namespace RrdPhpReader;
 
 class RrdDs
 {
-    /**
-     * @var RrdData
-     */
-    private $rrdData;
-
-    /**
-     * @var int
-     */
-    private $dataIndex;
-
-    /**
-     * @var int
-     */
+    /** @var int */
     private $dsIndex;
 
-    public function __construct(RrdData $rrdData, int $dataIndex, int $dsIndex)
+    /**  @var string */
+    private $name;
+
+    /** @var string */
+    private $type;
+
+    /** @var float */
+    private $min;
+
+    /** @var float */
+    private $max;
+
+    public function __construct(int $dsIndex, string $name, string $type, float $min, float $max)
     {
-        $this->rrdData = $rrdData;
-        $this->dataIndex = $dataIndex;
         $this->dsIndex = $dsIndex;
+        $this->name = $name;
+        $this->type = $type;
+        $this->min = $min;
+        $this->max = $max;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getMin(): float
+    {
+        return $this->min;
+    }
+
+    public function getMax(): float
+    {
+        return $this->max;
     }
 
     public function getIndex(): int
@@ -32,28 +57,30 @@ class RrdDs
         return $this->dsIndex;
     }
 
-    public function getName(): string
+    public function __toString()
     {
-        return $this->rrdData->getCStringAt($this->dataIndex, 20);
+        return sprintf(
+            'name=%s, type=%s, min=%f, max=%f',
+            $this->getName(),
+            $this->getType(),
+            $this->getMin(),
+            $this->getMax()
+        );
     }
 
-    public function getType(): string
+    public static function fromData(RrdData $rrdData, int $dataIndex, int $dsIndex): RrdDs
     {
-        return $this->rrdData->getCStringAt($this->dataIndex + 20, 20);
-    }
+        $name = $rrdData->getCStringAt($dataIndex, 20);
+        $type = $rrdData->getCStringAt($dataIndex + 20, 20);
+        $min = $rrdData->getDoubleAt($dataIndex + 48);
+        $max = $rrdData->getDoubleAt($dataIndex + 56);
 
-    public function getMin(): float
-    {
-        return $this->rrdData->getDoubleAt($this->dataIndex + 48);
-    }
-
-    public function getMax(): float
-    {
-        return $this->rrdData->getDoubleAt($this->dataIndex + 56);
-    }
-
-    public function __destruct()
-    {
-        $this->rrdData = null;
+        return new self(
+            $dsIndex,
+            $name,
+            $type,
+            $min,
+            $max
+        );
     }
 }

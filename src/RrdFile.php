@@ -8,14 +8,10 @@ use RrdPhpReader\Rra\RraInfo;
 
 class RrdFile
 {
-    /**
-     * @var RrdHeader
-     */
+    /** @var RrdHeader */
     private $header;
 
-    /**
-     * @var RrdData
-     */
+    /** @var RrdData */
     private $rrdData;
 
     public function __construct(RrdData $rrdData)
@@ -24,15 +20,14 @@ class RrdFile
         $this->header = new RrdHeader($rrdData);
     }
 
-
     public function getHeader(): RrdHeader
     {
         return $this->header;
     }
 
-    public function getMinStep(): int
+    public function getStep(): int
     {
-        return $this->header->getMinStep();
+        return $this->header->getStep();
     }
 
     public function getLastUpdate(): int
@@ -40,9 +35,9 @@ class RrdFile
         return $this->header->getLastUpdate();
     }
 
-    public function getNrDSs(): int
+    public function getDsCount(): int
     {
-        return $this->header->getNrDSs();
+        return $this->header->getDsCount();
     }
 
     public function getDS($ds): RrdDs
@@ -53,9 +48,24 @@ class RrdFile
         return $this->header->getDSbyIdx($ds);
     }
 
-    public function getNrRRAs(): int
+    /**
+     * Return associative array (key=>ds) of all datasources in RRD file
+     *
+     * @return RrdDs[]
+     */
+    public function getAllDS(): array
     {
-        return $this->header->getNrRRAs();
+        $dataSources = [];
+        for ($i = 0; $i < $this->getDsCount(); $i++) {
+            $rrdDs = $this->getDS($i);
+            $dataSources[$rrdDs->getName()] = $rrdDs;
+        }
+        return $dataSources;
+    }
+
+    public function getRraCount(): int
+    {
+        return $this->header->getRraCount();
     }
 
     public function getRRAInfo(int $idx): RraInfo
@@ -66,14 +76,30 @@ class RrdFile
     public function getRRA(int $idx): Rra
     {
         $rra_info = $this->header->getRRAInfo($idx);
+
         return new Rra(
             $this->rrdData,
             $this->header->rra_ptr_idx + ($idx * $this->header->rra_ptr_el_size),
             $rra_info,
-            $this->header->header_size,
-            $this->header->rra_def_row_cnt_sums[$idx],
-            $this->header->getNrDSs()
+            $this->header->getDsCount(),
+            $this->header->getRraBaseOffsetIndex($idx)
         );
+    }
+
+
+    /**
+     * Return all RRAs in RRD file
+     *
+     * @return Rra[]
+     */
+    public function getAllRRAs(): array
+    {
+        $rras = [];
+        $rraCount = $this->getRraCount();
+        for ($i = 0; $i < $rraCount; $i++) {
+            $rras[$i] = $this->getRRA($i);
+        }
+        return $rras;
     }
 
     public function __destruct()
