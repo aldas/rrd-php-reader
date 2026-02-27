@@ -49,12 +49,10 @@ class RrdFileTest extends TestCase
         $this->checkFile('rrd_windows_server_x86_64.rrd');
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Help
-     */
     public function testShouldThrowExceptionForHugeData()
     {
+        $this->expectExceptionMessage("Help");
+        $this->expectException(\RuntimeException::class);
         throw new \RuntimeException('Help');
     }
 

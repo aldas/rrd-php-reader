@@ -51,7 +51,7 @@ class RrdReader
      * @param array|null $options
      * @return Traversable
      */
-    public function getAll(array $options = null): Traversable
+    public function getAll(?array $options = null): Traversable
     {
         $dataSources = $this->getDataSources($options);
         $rras = $this->getRras($options);
@@ -62,7 +62,7 @@ class RrdReader
     /**
      * @return RrdRowValue[]
      */
-    public function getAllAsArray(array $options = null): array
+    public function getAllAsArray(?array $options = null): array
     {
         return iterator_to_array($this->getAll($options));
     }
@@ -70,7 +70,7 @@ class RrdReader
     /**
      * @return RrdDs[]
      */
-    public function getDataSources(array $options = null): array
+    public function getDataSources(?array $options = null): array
     {
         $dataSources = [];
         $dsName = $options[static::OPTION_DS] ?? null;
@@ -87,7 +87,7 @@ class RrdReader
     /**
      * @return Rra[]
      */
-    private function getRras(array $options = null): array
+    private function getRras(?array $options = null): array
     {
         $rraIndex = $options[static::OPTION_RRA_INDEX] ?? null;
         if ($rraIndex !== null) {
@@ -119,7 +119,7 @@ class RrdReader
      *
      * @return Traversable
      */
-    private function extractRows(array $dataSources, array $rras, array $options = null)
+    private function extractRows(array $dataSources, array $rras, ?array $options = null)
     {
         $rowCallback = $options[static::OPTION_ROW_FILTER_CALLBACK] ?? null;
         $hasRowCallback = !is_string($rowCallback) && is_callable($rowCallback);
@@ -143,7 +143,7 @@ class RrdReader
         }
     }
 
-    public function outputAsCsv($handle, array $options = null)
+    public function outputAsCsv($handle, ?array $options = null)
     {
         if (!is_resource($handle)) {
             throw new InvalidArgumentException('resource expected, ' . gettype($handle) . ' given');

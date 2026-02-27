@@ -3,6 +3,7 @@
 namespace Tests;
 
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RrdPhpReader\Rra\RraInfo;
 use RrdPhpReader\RrdReader;
@@ -15,7 +16,7 @@ class RrdReaderTest extends TestCase
     private static $EXAMPLE_FOR_EXTRA_VALUE;
     private static $EXAMPLE_FOR_EXTRA_VALUE_MAX;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $rraAverage = new RraInfo('AVERAGE', 4, 1, 1);
         $rraMax = new RraInfo('MAX', 4, 1, 1);
@@ -46,7 +47,7 @@ class RrdReaderTest extends TestCase
         ];
     }
 
-    public function allArchFiles(): array
+    public static function allArchFiles(): array
     {
         return [
             'rrd_linux_x86_64' => ['rrd_linux_x86_64.rrd'],
@@ -55,9 +56,7 @@ class RrdReaderTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider allArchFiles
-     */
+    #[DataProvider('allArchFiles')]
     public function testReadDataForSpecificDsRra(string $testRrd)
     {
         $reader = RrdReader::createFromString(FileUtils::getContents($testRrd));
@@ -69,9 +68,7 @@ class RrdReaderTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider allArchFiles
-     */
+    #[DataProvider('allArchFiles')]
     public function testReadDataAllRras(string $testRrd)
     {
         $reader = RrdReader::createFromString(FileUtils::getContents($testRrd));
@@ -84,9 +81,7 @@ class RrdReaderTest extends TestCase
         $this->assertEquals(self::$EXAMPLE_FOR_VALUE_MAX[3], $data[7]);
     }
 
-    /**
-     * @dataProvider allArchFiles
-     */
+    #[DataProvider('allArchFiles')]
     public function testReadDataAllDsAllRras(string $testRrd)
     {
         $reader = RrdReader::createFromString(FileUtils::getContents($testRrd));
@@ -107,9 +102,7 @@ class RrdReaderTest extends TestCase
 
     }
 
-    /**
-     * @dataProvider allArchFiles
-     */
+    #[DataProvider('allArchFiles')]
     public function testReadDataAllDsSpecificRra(string $testRrd)
     {
         $reader = RrdReader::createFromString(FileUtils::getContents($testRrd));
